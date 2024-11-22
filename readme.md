@@ -20,6 +20,11 @@ python3 generateYearBook.py YOUR_USERNAME YOUR_PASSWORD
 
 You can find your yearbook ready as `yearbook.pdf`, ready your printers!
 
+Or you could just use Google Colab
+
+
+<a href="https://colab.research.google.com/drive/1CBSxdaOnImaiUhoKPtAaxAJ9Gp1CBzp7?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
 ## Contributing
 
 Check github issues for possible bugs, feature proposals
