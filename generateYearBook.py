@@ -7,6 +7,7 @@ from reportlab.lib.utils import ImageReader
 from io import BytesIO
 import sys
 import requests
+import time
 
 pdfmetrics.registerFont(TTFont('Symbola', 'Symbola.ttf'))
 
@@ -18,11 +19,15 @@ def add_message_block(c, message, y_position):
     c.line(50, y_position, width - 50, y_position)
 
     # Left Profile
-    profile_image_url = message['written_by_profile']['profile_image']
-    if profile_image_url:
-        response = requests.get("https://centralised.sarc-iitb.org" + profile_image_url, headers=auth_header)
-        profile_img = ImageReader(BytesIO(response.content))
-        c.drawImage(profile_img, 60, y_position - 60, 50, 50)
+    try: 
+        profile_image_url = message['written_by_profile']['profile_image']
+        if profile_image_url:
+            response = requests.get("https://centralised.sarc-iitb.org" + profile_image_url, headers=auth_header)
+            profile_img = ImageReader(BytesIO(response.content))
+            c.drawImage(profile_img, 60, y_position - 60, 50, 50)
+    except:
+        # skip for messages from anonymous users
+        time.sleep(0) #DoNothing #ForRealThough
 
     # Right Profile
     profile_image_url = message['written_for_profile']['profile_image']
@@ -41,7 +46,9 @@ def add_message_block(c, message, y_position):
 
     c.setFont("Helvetica", 10)
     c.setFillColor(colors.black)
-    c.drawString(120, y_position - 40, f"{message['written_by_dept']} | {message['written_by_year']}")
+    if message['written_by_dept'] != "None" and message['written_by_year'] != "None":
+        # for anonymous users, these fields are not present
+        c.drawString(120, y_position - 40, f"{message['written_by_dept']} | {message['written_by_year']}")
     c.drawString(width - 280, y_position - 40, f"{message['written_for_dept']} | {message['written_for_year']}")
 
     # Written Content
