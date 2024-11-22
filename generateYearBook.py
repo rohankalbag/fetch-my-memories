@@ -7,6 +7,7 @@ from reportlab.lib.utils import ImageReader
 from io import BytesIO
 import sys
 import requests
+from tqdm import tqdm
 import time
 
 pdfmetrics.registerFont(TTFont('Symbola', 'Symbola.ttf'))
@@ -113,7 +114,7 @@ def generate_pdf(messagesForYou, messagesByYou, output_file):
 
     y_position = 680
 
-    for message in messagesForYou:
+    for message in tqdm(messagesForYou):
         if y_position < 150: 
             c.showPage()
             y_position = 750
@@ -125,7 +126,7 @@ def generate_pdf(messagesForYou, messagesByYou, output_file):
 
     y_position -= 30
     
-    for message in messagesByYou:
+    for message in tqdm(messagesByYou):
         if y_position < 150: 
             c.showPage()
             y_position = 750
