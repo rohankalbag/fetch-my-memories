@@ -6,8 +6,7 @@ CSS Improvements: Seniors have shared feedback about the formatting, and honestl
 
 While there might be a delay in delivery of yearbook, but imagine the happiness seniors would feel lifelong if their yearbook was beautifully designed with a theme-based flow, a gallery, and a "khazana of memories" instead of something that feels rushed and making feel shy on sharing with someone. The API part iwas straightforward no big deal with it, but creating something that truly captures their memories is what makes this special.
 
-Attaching an inspiration (photo) for ideas to enhance the design further. Kudos and GG!! 😊
-<img  alt="Screenshot 2024-11-22 at 6 36 40 PM" src="https://github.com/user-attachments/assets/87425176-fbb9-4712-8cf6-6a0b2ef8ff6f">
+But yes as you said "It is a rudimentary, work in progress " so go ahead. Kudos and GG!!
 
 
 # Fetch my Memories
