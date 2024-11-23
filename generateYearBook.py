@@ -9,6 +9,7 @@ import sys
 import requests
 from tqdm import tqdm
 import time
+from constants import BLACK_COVER_IMG, BLACK_GRP_IMAGE
 
 pdfmetrics.registerFont(TTFont('Symbola', 'Symbola.ttf'))
 
@@ -140,20 +141,26 @@ def generate_pdf(messagesForYou, messagesByYou, userPhotos, output_file):
     c.line(50, 720, width - 50, 720)
 
     imagesInserted = False
+    coverPhotoInserted = False
+    groupPhotosInserted = False
 
     try:
         coverImageURL = "https://centralised.sarc-iitb.org" + userPhotos["cover"]
         response = requests.get(coverImageURL, headers=auth_header)
-        coverImage = ImageReader(BytesIO(response.content))
-        c.drawImage(coverImage, 50, 545, width - 100, (width - 100)*0.3) # 10:3 aspect ratio
-        groupImageURLs = [userPhotos[t] for t in userPhotos if t.startswith("img")]
-        groupImages = [ImageReader(BytesIO(requests.get("https://centralised.sarc-iitb.org" + groupImageURL, headers=auth_header).content)) for groupImageURL in groupImageURLs]
-        c.setFillColor(colors.purple)
-        c.setFont("Helvetica", 12)
-        c.drawString(175, 510, "Refresh your memories with these group photos!")
+        if response.content != BLACK_COVER_IMG:
+            coverImage = ImageReader(BytesIO(response.content))
+            c.drawImage(coverImage, 50, 545, width - 100, (width - 100)*0.3) # 10:3 aspect ratio
+            coverPhotoInserted = True
+        groupImageRawData = [requests.get("https://centralised.sarc-iitb.org" + userPhotos[t], headers=auth_header).content for t in userPhotos if t.startswith("img")]
+        groupImages = [ImageReader(BytesIO(t)) for t in groupImageRawData if t != BLACK_GRP_IMAGE]
+        if len(groupImages) > 0:
+            c.setFillColor(colors.purple)
+            c.setFont("Helvetica", 12)
+            c.drawString(175, 510, "Refresh your memories with these group photos!")
+            groupPhotosInserted = True
         for i in range(len(groupImages)):
             c.drawImage(groupImages[i], 50 + (i % 2) * 265, 310 - (i // 2) * 200, (width - 110)/2, (width - 110)/2 * (2/3)) # 3:2 aspect ratio
-        imagesInserted = True
+        imagesInserted = coverPhotoInserted or groupPhotosInserted
     except:
         time.sleep(0)
 
@@ -166,8 +173,8 @@ def generate_pdf(messagesForYou, messagesByYou, userPhotos, output_file):
     else:
         c.setFont("Helvetica-Bold", 20)
         c.setFillColor(colors.purple)
-        c.drawString(175, 710, "What people wrote for you")
-        y_position = 690
+        c.drawString(175, 690, "What people wrote for you")
+        y_position = 670
     progressBar = tqdm(total=len(messagesForYou) + len(messagesByYou))
 
     for message in messagesForYou:
