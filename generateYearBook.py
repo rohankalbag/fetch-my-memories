@@ -113,12 +113,14 @@ def generate_pdf(messagesForYou, messagesByYou, output_file):
     c.drawString(50, 700, "What people wrote for you")
 
     y_position = 680
+    progressBar = tqdm(total=len(messagesForYou) + len(messagesByYou))
 
-    for message in tqdm(messagesForYou):
+    for message in messagesForYou:
         if y_position < 150: 
             c.showPage()
             y_position = 750
         y_position = add_message_block(c, message, y_position)
+        progressBar.update(1)
     
     c.setFont("Helvetica-Bold", 15)
     c.setFillColor(colors.purple)
@@ -126,11 +128,12 @@ def generate_pdf(messagesForYou, messagesByYou, output_file):
 
     y_position -= 30
     
-    for message in tqdm(messagesByYou):
+    for message in messagesByYou:
         if y_position < 150: 
             c.showPage()
             y_position = 750
         y_position = add_message_block(c, message, y_position)
+        progressBar.update(1)
     c.save()
 
 if __name__ == "__main__":
