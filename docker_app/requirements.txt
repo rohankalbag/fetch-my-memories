@@ -1,0 +1,4 @@
+reportlab
+requests
+tqdm
+flask
