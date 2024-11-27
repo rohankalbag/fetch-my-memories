@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fetch-my-yearbook</title>
+</head>
+
+<style>
+    #progress-container {
+        width: 100%;
+        background-color: #f3f3f3;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin: 20px 0;
+    }
+
+    #progress-bar {
+        width: 0;
+        height: 20px;
+        background-color: #4caf50;
+        border-radius: 5px;
+        transition: width 0.2s;
+    }
+
+    #start-button {
+        margin: 20px 0;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    #start-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+</style>
+
+<body>
+    <h1>fetch-my-yearbook</h1>
+    <h2>please wait till your yearbook is ready</h2>
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    <button id="dwnbtn" onclick="downloadYearBook()" disabled>download your yearbook as pdf</button>
+</body>
+
+<script>
+    function startTask(){
+        const downloadButton = document.getElementById('dwnbtn');
+        downloadButton.disabled = true;
+        const progressBar = document.getElementById('progress-bar');
+        const interval = setInterval(() => {
+            fetch('/progress')
+                .then(response => response.text())
+                .then(progress => {
+                    progressBar.style.width = `${progress}%`;
+                    console.log(progress);
+                    if (parseInt(progress) >= 100) {
+                        clearInterval(interval);
+                        downloadButton.disabled = false;
+                    }
+                });
+        }, 500);
+    }
+
+    function downloadYearBook(){
+        fetch('/download')
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'yearbook.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            });
+    }
+
+    window.onload = startTask;
+</script>
+</html>

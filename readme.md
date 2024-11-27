@@ -9,6 +9,8 @@ This open-source project leverages your yearbook's web portal's API endpoints to
 
 ## Getting Started
 
+### Running on Local Python 
+
 You'll need `python3` for this and an internet connection, also make sure to get the email address (of the form `xxxxx@iitb.ac.in`) and password for your yearbook account if you have forgotten it.
 
 ```bash
@@ -20,10 +22,23 @@ python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD
 
 You can find your yearbook ready as `yearbook.pdf`, ready your printers!
 
-Or you could just use Google Colab
-
+### Running on Google Colab
 
 <a href="https://colab.research.google.com/drive/1CBSxdaOnImaiUhoKPtAaxAJ9Gp1CBzp7?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+
+### Running Docker Container
+
+To use the containerized app image, first start your docker desktop and then run
+
+```bash
+docker compose up -d
+```
+
+Then run open a browser and enter the url `localhost:8000` to run the app with the trivial frontend
+
+```bash
+docker compose down
+```
 
 ## Contributing
 
