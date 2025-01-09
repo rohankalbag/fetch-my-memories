@@ -31,10 +31,13 @@ You can find your yearbook ready as `yearbook.pdf` and a printable version of it
 To use the containerized app image, first start your docker desktop and then run
 
 ```bash
+cd docker_app
 docker compose up -d
 ```
 
 Then run open a browser and enter the url `localhost:8000` to run the app with the trivial frontend
+
+run the below command to terminate the containerized app
 
 ```bash
 docker compose down
