@@ -20,7 +20,7 @@ pip install -r requirements.txt
 python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD
 ```
 
-You can find your yearbook ready as `yearbook.pdf`, ready your printers!
+You can find your yearbook ready as `yearbook.pdf` and a printable version of it as `yearbook_printable.pdf`, ready your printers!
 
 ### Running on Google Colab
 
