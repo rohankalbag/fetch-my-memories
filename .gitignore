@@ -1,4 +1,5 @@
 .venv
 .gitignore
 yearbook.pdf
+yearbook_printable.pdf
 __pycache__
