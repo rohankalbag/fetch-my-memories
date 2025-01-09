@@ -126,15 +126,15 @@ def add_message_block(c, message, y_position):
 
     return current_y_position - 50
 
-def generate_pdf(messagesForYou, messagesByYou, userPhotos, output_file):
+def generate_pdf_printable(messagesForYou, messagesByYou, userPhotos, output_file):
     c = canvas.Canvas(output_file, pagesize=letter)
     width, height = letter
 
     c.setFont("Helvetica-Bold", 20)
     c.setFillColor(colors.purple)
-    c.drawString(125, 750, "Yearbook - Your College Memories")
+    c.drawString(135, 750, "Yearbook - Your College Memories")
     c.setFont("Helvetica", 12)
-    c.drawString(100, 730, "Let's take a stroll through time and remember the good times we had together!")
+    c.drawString(145, 730, "Late Nights, Deadlines, and Dreams - A Stroll through time")
 
     c.setStrokeColor(colors.purple)
     c.setLineWidth(1)
@@ -155,8 +155,96 @@ def generate_pdf(messagesForYou, messagesByYou, userPhotos, output_file):
         groupImages = [ImageReader(BytesIO(t)) for t in groupImageRawData if t != BLACK_GRP_IMAGE]
         if len(groupImages) > 0:
             c.setFillColor(colors.purple)
-            c.setFont("Helvetica", 12)
-            c.drawString(175, 510, "Refresh your memories with these group photos!")
+            # c.setFont("Helvetica", 12)
+            # c.drawString(175, 510, "Refresh your memories with these group photos!")
+            c.setFont("Helvetica-Bold", 15)
+            c.drawString(90, 510, "Group Photos: A Timeless Reminder of Cherished Friendships !")
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(155, 495, "Smiles That Speak of Shared Journeys and Lasting Bonds")
+            groupPhotosInserted = True
+        for i in range(len(groupImages)):
+            c.drawImage(groupImages[i], 50 + (i % 2) * 265, 310 - (i // 2) * 200, (width - 110)/2, (width - 110)/2 * (2/3)) # 3:2 aspect ratio
+        imagesInserted = coverPhotoInserted or groupPhotosInserted
+    except:
+        time.sleep(0)
+
+    if imagesInserted:
+        c.showPage()
+        c.setFont("Helvetica-Bold", 20)
+        c.setFillColor(colors.purple)
+        c.drawString(175, 750, "What people wrote for you")
+        y_position = 720
+    else:
+        c.setFont("Helvetica-Bold", 20)
+        c.setFillColor(colors.purple)
+        c.drawString(175, 690, "What people wrote for you")
+        y_position = 670
+    progressBar = tqdm(total=len(messagesForYou) + len(messagesByYou))
+
+    for message in messagesForYou:
+        if y_position < 150: 
+            c.showPage()
+            y_position = 750
+        y_position = add_message_block(c, message, y_position)
+        progressBar.update(1)
+    
+    
+    c.showPage()
+    c.setFont("Helvetica-Bold", 20)
+    c.setFillColor(colors.purple)
+    c.drawString(175, 750, "What you wrote for others")
+
+    y_position = 720
+    
+    for message in messagesByYou:
+        if y_position < 150: 
+            c.showPage()
+            y_position = 750
+        y_position = add_message_block(c, message, y_position)
+        progressBar.update(1)
+    c.save()
+
+def generate_pdf(messagesForYou, messagesByYou, userPhotos, output_file):
+    c = canvas.Canvas(output_file, pagesize=letter)
+    width, height = letter
+
+    # cover page
+    c.drawImage('iitb_bg.jpg', 0, -2, width=width+3, height=height+2,mask='auto')
+    c.drawImage('iitb-logo.png', width-77, height-77, 70, 70, mask='auto')
+
+    c.setFillColor(colors.white)
+    c.setFillAlpha(0.3)
+    c.rect(80, 360, 450, 70, fill=1, stroke=0)
+    c.setFont("Helvetica-Bold", 25)
+    c.setFillColor(colors.purple)
+    c.drawString(100, 396, "Yearbook - Your College Memories")
+    c.setFont("Helvetica-Bold", 15)
+    c.drawString(100, 376, "Late Nights, Deadlines, and Dreams - A Stroll through time")
+    c.showPage()
+
+    # c.setStrokeColor(colors.purple)
+    # c.setLineWidth(1)
+    # c.line(50, 720, width - 50, 720)
+
+    imagesInserted = False
+    coverPhotoInserted = False
+    groupPhotosInserted = False
+
+    try:
+        coverImageURL = "https://centralised.sarc-iitb.org" + userPhotos["cover"]
+        response = requests.get(coverImageURL, headers=auth_header)
+        if response.content != BLACK_COVER_IMG:
+            coverImage = ImageReader(BytesIO(response.content))
+            c.drawImage(coverImage, 50, 545, width - 100, (width - 100)*0.3) # 10:3 aspect ratio
+            coverPhotoInserted = True
+        groupImageRawData = [requests.get("https://centralised.sarc-iitb.org" + userPhotos[t], headers=auth_header).content for t in userPhotos if t.startswith("img")]
+        groupImages = [ImageReader(BytesIO(t)) for t in groupImageRawData if t != BLACK_GRP_IMAGE]
+        if len(groupImages) > 0:
+            c.setFillColor(colors.purple)
+            c.setFont("Helvetica-Bold", 15)
+            c.drawString(90, 510, "Group Photos: A Timeless Reminder of Cherished Friendships !")
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(155, 495, "Smiles That Speak of Shared Journeys and Lasting Bonds")
             groupPhotosInserted = True
         for i in range(len(groupImages)):
             c.drawImage(groupImages[i], 50 + (i % 2) * 265, 310 - (i // 2) * 200, (width - 110)/2, (width - 110)/2 * (2/3)) # 3:2 aspect ratio
@@ -220,3 +308,4 @@ if __name__ == "__main__":
     messagesByYou = requests.get(f"https://centralised.sarc-iitb.org/api/posts/my/{userId}",headers=auth_header).json()
     userPhotos = requests.get(f"https://centralised.sarc-iitb.org/api/authenticate/profile/{userId}/gallery/", headers=auth_header).json()
     generate_pdf(messagesForYou, messagesByYou, userPhotos, "yearbook.pdf")
+    generate_pdf_printable(messagesForYou, messagesByYou, userPhotos, "yearbook_printable.pdf")
