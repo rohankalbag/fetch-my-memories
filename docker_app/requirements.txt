@@ -1,4 +1,0 @@
-reportlab
-requests
-tqdm
-flask

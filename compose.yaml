@@ -1,7 +1,7 @@
 services:
   web: 
     build:
-      context: docker_app
+      context: .
       target: builder
     stop_signal: SIGINT
     ports:
