@@ -6,7 +6,7 @@ This open-source project leverages your yearbook's web portal's API endpoints to
 
 <img width="847" alt="Screenshot 2024-11-22 at 6 36 40 PM" src="https://github.com/user-attachments/assets/c57f2fe5-e41d-4223-bcb5-275cf3ebe295">
 
-Check out my yearbook [here]()
+Check out rohankalbag's yearbook [here](https://github.com/rohankalbag/fetch-my-memories/blob/main/yearbook.pdf)
 
 ## Getting Started
 
