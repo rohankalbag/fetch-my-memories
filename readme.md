@@ -6,6 +6,7 @@ This open-source project leverages your yearbook's web portal's API endpoints to
 
 <img width="847" alt="Screenshot 2024-11-22 at 6 36 40 PM" src="https://github.com/user-attachments/assets/c57f2fe5-e41d-4223-bcb5-275cf3ebe295">
 
+Check out my yearbook [here]()
 
 ## Getting Started
 
@@ -26,12 +27,21 @@ You can find your yearbook ready as `yearbook.pdf` and a printable version of it
 
 <a href="https://colab.research.google.com/drive/1CBSxdaOnImaiUhoKPtAaxAJ9Gp1CBzp7?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
+### Running Flask Website Locally
+
+```bash
+git clone https://github.com/rohankalbag/fetch-my-memories
+cd fetch-my-memories
+pip install -r requirements.txt
+python3 app.py
+```
+Then run open a browser and enter the url `localhost:8000` to run the app with the trivial frontend
+
 ### Running Docker Container
 
 To use the containerized app image, first start your docker desktop and then run
 
 ```bash
-cd docker_app
 docker compose up -d
 ```
 
