@@ -12,7 +12,8 @@ Check out rohankalbag's yearbook [here](https://github.com/rohankalbag/fetch-my-
 
 ### Running on Local Python 
 
-You'll need `python3` for this and an internet connection, also make sure to get the email address (of the form `xxxxx@iitb.ac.in`) and password for your yearbook account if you have forgotten it.
+You'll need `python3` for this and an internet connection, also make sure to get the email address (of the form `xxxxx@iitb.ac.in`) and password for your yearbook account if you have forgotten it.    
+Note : The web scrape may not work on IITB InstiNet
 
 ```bash
 git clone https://github.com/rohankalbag/fetch-my-memories
@@ -21,7 +22,16 @@ pip install -r requirements.txt
 python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD
 ```
 
-You can find your yearbook ready as `yearbook.pdf` and a printable version of it as `yearbook_printable.pdf`, ready your printers!
+To also get the messages written by and written for your friends (Note that this takes considerably more time, averages at 45 seconds per friend) 
+
+```bash
+git clone https://github.com/rohankalbag/fetch-my-memories
+cd fetch-my-memories
+pip install -r requirements.txt
+python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD true
+```
+
+You can find your yearbook ready as `yearbook.pdf`
 
 ### Running on Google Colab
 
