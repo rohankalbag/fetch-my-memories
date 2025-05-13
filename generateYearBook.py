@@ -13,8 +13,9 @@ from constants import BLACK_COVER_IMG, BLACK_GRP_IMAGE
 
 class YearBook:
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, include_friends=True):
         self.progress_callback = None
+        self.include_friends = include_friends
 
         auth_url = "https://yearbook.sarc-iitb.org/api/authenticate/token/"
         auth_payload = {"username": username, "password": password}
@@ -26,14 +27,16 @@ class YearBook:
             raise Exception("Invalid credentials. Please check your email and password.")
         
         self.auth_header = {"Authorization": f"Bearer {access_token}"}
-        userId = requests.get("https://yearbook.sarc-iitb.org/api/authenticate/current_user/", headers=self.auth_header).json()['id']
-        messagesForYou = requests.get(f"https://yearbook.sarc-iitb.org/api/posts/others/{userId}",headers=self.auth_header).json()
-        messagesByYou = requests.get(f"https://yearbook.sarc-iitb.org/api/posts/my/{userId}",headers=self.auth_header).json()
-        userPhotos = requests.get(f"https://yearbook.sarc-iitb.org/api/authenticate/profile/{userId}/gallery/", headers=self.auth_header).json()
+        self.userId = requests.get("https://yearbook.sarc-iitb.org/api/authenticate/current_user/", headers=self.auth_header).json()['id']
         
-        self.messagesForYou = messagesForYou
-        self.messagesByYou = messagesByYou
-        self.userPhotos = userPhotos
+        # Get your messages
+        self.messagesForYou = requests.get(f"https://yearbook.sarc-iitb.org/api/posts/others/{self.userId}",headers=self.auth_header).json()
+        self.messagesByYou = requests.get(f"https://yearbook.sarc-iitb.org/api/posts/my/{self.userId}",headers=self.auth_header).json()
+        self.userPhotos = requests.get(f"https://yearbook.sarc-iitb.org/api/authenticate/profile/{self.userId}/gallery/", headers=self.auth_header).json()
+        
+        # Get friend messages only if include_friends is True
+        self.friendMessages = self.get_friend_messages() if include_friends else []
+        
         self.progress = 0
         pdfmetrics.registerFont(TTFont('Symbola', 'Symbola.ttf'))
     
@@ -153,6 +156,100 @@ class YearBook:
 
         return current_y_position - 50
 
+    def get_friend_ids(self):
+        """Get unique IDs of friends (people who have written to you or you have written to)."""
+        friend_ids = set()
+        
+        # Add people who have written to you
+        for message in self.messagesForYou:
+            try:
+                # The profile ID is directly in the profile object
+                friend_id = message['written_by_profile']['user']
+                friend_ids.add(friend_id)
+            except (KeyError, IndexError) as e:
+                print(f"Warning: Could not get friend ID from message. Error: {str(e)}")
+                continue
+        
+        # Add people you have written to
+        for message in self.messagesByYou:
+            try:
+                # The profile ID is directly in the profile object
+                friend_id = message['written_for_profile']['user']
+                friend_ids.add(friend_id)
+            except (KeyError, IndexError) as e:
+                print(f"Warning: Could not get friend ID from message. Error: {str(e)}")
+                continue
+        
+        print(f"Found {len(friend_ids)} unique friends")
+        # print(f"Returning only first two for now")
+        return list(friend_ids)
+
+    def get_friend_messages(self):
+        """Get messages written by and for each friend."""
+        friend_ids = self.get_friend_ids()
+        friend_messages = []
+        
+        for friend_id in friend_ids:
+            try:
+                # Get messages written by the friend
+                messages_by_friend = requests.get(f"https://yearbook.sarc-iitb.org/api/posts/my/{friend_id}", 
+                                               headers=self.auth_header).json()
+                
+                # Get messages written for the friend
+                messages_for_friend = requests.get(f"https://yearbook.sarc-iitb.org/api/posts/others/{friend_id}", 
+                                                headers=self.auth_header).json()
+                
+                # Add friend's profile info to each message
+                friend_profile = None
+                friend_name = None
+                
+                if messages_by_friend:
+                    friend_profile = messages_by_friend[0]['written_by_profile']
+                    friend_name = friend_profile.get('name', 'Unknown')
+                elif messages_for_friend:
+                    friend_profile = messages_for_friend[0]['written_for_profile']
+                    friend_name = friend_profile.get('name', 'Unknown')
+                
+                if friend_name:
+                    friend_messages.append({
+                        'friend_id': friend_id,
+                        'friend_name': friend_name,
+                        'messages_by': messages_by_friend,
+                        'messages_for': messages_for_friend
+                    })
+            except Exception as e:
+                print(f"Warning: Error processing friend {friend_id}: {str(e)}")
+                continue
+        
+        return friend_messages
+
+    def add_friend_intro_page(self, c, friend_data):
+        """Add an introduction page - just a centered title."""
+        width, height = letter
+        
+        # Start a new page
+        c.showPage()
+        
+        # Add centered title
+        c.setFont("Helvetica-Bold", 30)
+        c.setFillColor(colors.purple)
+        
+        # First line
+        first_line = "Messages written by and for"
+        text_width = c.stringWidth(first_line, "Helvetica-Bold", 30)
+        x_position = (width - text_width) / 2
+        c.drawString(x_position, height/2 + 20, first_line)
+        
+        # Second line - friend's name
+        second_line = friend_data['friend_name']
+        text_width = c.stringWidth(second_line, "Helvetica-Bold", 30)
+        x_position = (width - text_width) / 2
+        c.drawString(x_position, height/2 - 20, second_line)
+        
+        # Add a decorative line
+        c.setStrokeColor(colors.purple)
+        c.setLineWidth(1)
+        c.line(50, height/2 - 50, width - 50, height/2 - 50)
 
     def generate_pdf(self, output_file):
         c = canvas.Canvas(output_file, pagesize=letter)
@@ -171,10 +268,6 @@ class YearBook:
         c.setFont("Helvetica-Bold", 15)
         c.drawString(100, 376, "Late Nights, Deadlines, and Dreams - A Stroll through time")
         c.showPage()
-
-        # c.setStrokeColor(colors.purple)
-        # c.setLineWidth(1)
-        # c.line(50, 720, width - 50, 720)
 
         imagesInserted = False
         coverPhotoInserted = False
@@ -214,8 +307,16 @@ class YearBook:
             c.setFillColor(colors.purple)
             c.drawString(175, 690, "What people wrote for you")
             y_position = 670
-        progressBar = tqdm(total=len(self.messagesForYou) + len(self.messagesByYou))
 
+        # Calculate total messages for progress bar
+        total_messages = len(self.messagesForYou) + len(self.messagesByYou)
+        if self.include_friends:
+            for friend_data in self.friendMessages:
+                total_messages += len(friend_data['messages_by']) + len(friend_data['messages_for'])
+        
+        progressBar = tqdm(total=total_messages)
+
+        # Your messages
         for message in self.messagesForYou:
             if y_position < 150: 
                 c.showPage()
@@ -226,12 +327,10 @@ class YearBook:
             if self.progress_callback:
                 self.progress_callback(self.progress)
         
-        
         c.showPage()
         c.setFont("Helvetica-Bold", 20)
         c.setFillColor(colors.purple)
         c.drawString(175, 750, "What you wrote for others")
-
         y_position = 720
         
         for message in self.messagesByYou:
@@ -243,16 +342,61 @@ class YearBook:
             self.progress += 1
             if self.progress_callback:
                 self.progress_callback(self.progress)
+
+        # Friend messages (only if include_friends is True)
+        if self.include_friends:
+            for friend_data in self.friendMessages:
+                if not friend_data['messages_by'] and not friend_data['messages_for'] : continue
+                # Add friend introduction page
+                self.add_friend_intro_page(c, friend_data)
+                
+                # Messages written by the friend
+                if friend_data['messages_by']:
+                    c.showPage()
+                    c.setFont("Helvetica-Bold", 16)
+                    c.setFillColor(colors.purple)
+                    c.drawString(175, 750, f"Messages written by {friend_data['friend_name']}")
+                    y_position = 720
+
+                    for message in friend_data['messages_by']:
+                        if y_position < 150:
+                            c.showPage()
+                            y_position = 750
+                        y_position = self.add_message_block(c, message, y_position)
+                        progressBar.update(1)
+                        self.progress += 1
+                        if self.progress_callback:
+                            self.progress_callback(self.progress)
+
+                # Messages written for the friend
+                if friend_data['messages_for']:
+                    c.showPage()
+                    c.setFont("Helvetica-Bold", 16)
+                    c.setFillColor(colors.purple)
+                    c.drawString(175, 750, f"Messages written for {friend_data['friend_name']}")
+                    y_position = 720
+
+                    for message in friend_data['messages_for']:
+                        if y_position < 150:
+                            c.showPage()
+                            y_position = 750
+                        y_position = self.add_message_block(c, message, y_position)
+                        progressBar.update(1)
+                        self.progress += 1
+                        if self.progress_callback:
+                            self.progress_callback(self.progress)
+
         c.save()
 
 if __name__ == "__main__":
     
-    if len(sys.argv) != 3:
-        print("Error: Invalid number of arguments. Expected 2, got", len(sys.argv) - 1)
+    if len(sys.argv) < 3:
+        print("Error: Invalid number of arguments. Expected at least 2, got", len(sys.argv) - 1)
         sys.exit(1)
 
     param1 = sys.argv[1]
     param2 = sys.argv[2]
+    include_friends = len(sys.argv) > 3 and sys.argv[3].lower() == 'true'
     
-    yb = YearBook(param1, param2)
+    yb = YearBook(param1, param2, include_friends)
     yb.generate_pdf("yearbook.pdf")
