@@ -13,7 +13,7 @@ Check out rohankalbag's yearbook [here](https://github.com/rohankalbag/fetch-my-
 ### Running on Local Python 
 
 You'll need `python3` for this and an internet connection, also make sure to get the email address (of the form `xxxxx@iitb.ac.in`) and password for your yearbook account if you have forgotten it.    
-Note : The web scrape may not work on IITB InstiNet
+Note: The web scrape may not work on IITB InstiNet
 
 ```bash
 git clone https://github.com/rohankalbag/fetch-my-memories

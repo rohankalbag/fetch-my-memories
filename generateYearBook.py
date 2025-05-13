@@ -221,7 +221,7 @@ class YearBook:
                 print(f"Warning: Error processing friend {friend_id}: {str(e)}")
                 continue
         
-        return friend_messages[1:2]
+        return friend_messages
 
     def add_friend_intro_page(self, c, friend_data):
         """Add an introduction page - just a centered title."""
