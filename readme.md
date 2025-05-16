@@ -28,7 +28,16 @@ To also get the messages written by and written for your friends (Note that this
 git clone https://github.com/rohankalbag/fetch-my-memories
 cd fetch-my-memories
 pip install -r requirements.txt
-python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD true
+python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD wfriends
+```
+
+You can also opt for a dark-mode version of your yearbook, as follows  
+
+```bash
+git clone https://github.com/rohankalbag/fetch-my-memories
+cd fetch-my-memories
+pip install -r requirements.txt
+python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD dark
 ```
 
 You can find your yearbook ready as `yearbook.pdf`
