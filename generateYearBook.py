@@ -13,9 +13,27 @@ from constants import BLACK_COVER_IMG, BLACK_GRP_IMAGE
 
 class YearBook:
 
-    def __init__(self, username, password, include_friends=True):
+    def __init__(self, username, password, include_friends=False, dark_mode=False):
+        """Initialize the YearBook generator.
+        
+        Args:
+            username (str): Username for authentication
+            password (str): Password for authentication
+            include_friends (bool): Whether to include friends' messages
+            dark_mode (bool): Whether to use dark mode color scheme
+        """
         self.progress_callback = None
         self.include_friends = include_friends
+        self.dark_mode = dark_mode
+        
+        # Set up colors based on mode
+        if dark_mode:
+            self.bg_color = colors.HexColor('#2C2C2C')  # Slate gray
+            self.text_color = colors.HexColor('#E4E4E4')  # Light gray
+            self.accent_color = colors.HexColor('#B39CD0')
+        else :
+            self.text_color = colors.black  
+            self.accent_color = colors.purple  # Keep purple as accent color
 
         auth_url = "https://yearbook.sarc-iitb.org/api/authenticate/token/"
         auth_payload = {"username": username, "password": password}
@@ -39,14 +57,11 @@ class YearBook:
         
         self.progress = 0
         pdfmetrics.registerFont(TTFont('Symbola', 'Symbola.ttf'))
-    
-    def set_progress_callback(self, callback):
-        self.progress_callback = callback
 
     def add_message_block(self, c, message, y_position):
         width, height = letter
 
-        c.setStrokeColor(colors.purple)
+        c.setStrokeColor(self.accent_color)
         c.setLineWidth(1)
         c.line(50, y_position, width - 50, y_position)
 
@@ -72,12 +87,12 @@ class YearBook:
         written_by = "From: " + message['written_by']
         written_for = "To: " + message['written_for']
         c.setFont("Helvetica-Bold", 12)
-        c.setFillColor(colors.purple)
+        c.setFillColor(self.accent_color)
         c.drawString(120, y_position - 20, f"{written_by}")
         c.drawString(width - 200, y_position - 20, f"{written_for}")
 
         c.setFont("Helvetica", 10)
-        c.setFillColor(colors.black)
+        c.setFillColor(self.text_color)
         if message['written_by_dept'] != "None" and message['written_by_year'] != "None":
             # for anonymous users, these fields are not present
             if '&' in message["written_by_dept"]:
@@ -114,6 +129,7 @@ class YearBook:
         content = message['content']
         text_object = c.beginText(60, y_position - 85)
         text_object.setFont("Symbola", 12)
+        text_object.setFillColor(self.text_color)
         max_width = width - 120
         content_height = 0 
         current_y_position = y_position - 85
@@ -134,8 +150,12 @@ class YearBook:
                     if current_y_position < 50:
                         c.drawText(text_object)
                         c.showPage()
+                        if self.dark_mode:
+                            c.setFillColor(self.bg_color)
+                            c.rect(0, 0, width, height, fill=1)
                         text_object = c.beginText(60, height - 50)
                         text_object.setFont("Symbola", 12)
+                        text_object.setFillColor(self.text_color)
                         current_y_position = height - 50
 
                     current_line = word + " "
@@ -148,8 +168,12 @@ class YearBook:
                 if current_y_position < 50:
                     c.drawText(text_object)
                     c.showPage()
+                    if self.dark_mode:
+                        c.setFillColor(self.bg_color)
+                        c.rect(0, 0, width, height, fill=1)
                     text_object = c.beginText(60, height - 50)
                     text_object.setFont("Symbola", 12)
+                    text_object.setFillColor(self.text_color)
                     current_y_position = height - 50
 
         c.drawText(text_object)
@@ -230,9 +254,14 @@ class YearBook:
         # Start a new page
         c.showPage()
         
+        # Add dark background if in dark mode
+        if self.dark_mode:
+            c.setFillColor(self.bg_color)
+            c.rect(0, 0, width, height, fill=1)
+        
         # Add centered title
         c.setFont("Helvetica-Bold", 30)
-        c.setFillColor(colors.purple)
+        c.setFillColor(self.accent_color)
         
         # First line
         first_line = "Messages written by and for"
@@ -247,11 +276,16 @@ class YearBook:
         c.drawString(x_position, height/2 - 20, second_line)
         
         # Add a decorative line
-        c.setStrokeColor(colors.purple)
+        c.setStrokeColor(self.accent_color)
         c.setLineWidth(1)
         c.line(50, height/2 - 50, width - 50, height/2 - 50)
 
     def generate_pdf(self, output_file):
+        """Generate the yearbook PDF.
+        
+        Args:
+            output_file (str): Path to save the PDF file
+        """
         c = canvas.Canvas(output_file, pagesize=letter)
         width, height = letter
 
@@ -263,11 +297,17 @@ class YearBook:
         c.setFillAlpha(0.3)
         c.rect(80, 360, 450, 70, fill=1, stroke=0)
         c.setFont("Helvetica-Bold", 25)
-        c.setFillColor(colors.purple)
+        # c.setFillColor(self.accent_color)
+        c.setFillColor(self.accent_color)
         c.drawString(100, 396, "Yearbook - Your College Memories")
         c.setFont("Helvetica-Bold", 15)
         c.drawString(100, 376, "Late Nights, Deadlines, and Dreams - A Stroll through time")
         c.showPage()
+
+        # Add dark background if in dark mode
+        if self.dark_mode:
+            c.setFillColor(self.bg_color)
+            c.rect(0, 0, width, height, fill=1)
 
         imagesInserted = False
         coverPhotoInserted = False
@@ -284,7 +324,7 @@ class YearBook:
             groupImageRawData = [requests.get("https://yearbook.sarc-iitb.org" + userPhotos[t], headers=self.auth_header).content for t in userPhotos if t.startswith("img")]
             groupImages = [ImageReader(BytesIO(t)) for t in groupImageRawData if t != BLACK_GRP_IMAGE]
             if len(groupImages) > 0:
-                c.setFillColor(colors.purple)
+                c.setFillColor(self.accent_color)
                 c.setFont("Helvetica-Bold", 15)
                 c.drawString(90, 510, "Group Photos: A Timeless Reminder of Cherished Friendships !")
                 c.setFont("Helvetica-Bold", 12)
@@ -298,13 +338,16 @@ class YearBook:
 
         if imagesInserted:
             c.showPage()
+            if self.dark_mode:
+                c.setFillColor(self.bg_color)
+                c.rect(0, 0, width, height, fill=1)
             c.setFont("Helvetica-Bold", 20)
-            c.setFillColor(colors.purple)
+            c.setFillColor(self.accent_color)
             c.drawString(175, 750, "What people wrote for you")
             y_position = 720
         else:
             c.setFont("Helvetica-Bold", 20)
-            c.setFillColor(colors.purple)
+            c.setFillColor(self.accent_color)
             c.drawString(175, 690, "What people wrote for you")
             y_position = 670
 
@@ -320,6 +363,9 @@ class YearBook:
         for message in self.messagesForYou:
             if y_position < 150: 
                 c.showPage()
+                if self.dark_mode:
+                    c.setFillColor(self.bg_color)
+                    c.rect(0, 0, width, height, fill=1)
                 y_position = 750
             y_position = self.add_message_block(c, message, y_position)
             progressBar.update(1)
@@ -328,14 +374,20 @@ class YearBook:
                 self.progress_callback(self.progress)
         
         c.showPage()
+        if self.dark_mode:
+            c.setFillColor(self.bg_color)
+            c.rect(0, 0, width, height, fill=1)
         c.setFont("Helvetica-Bold", 20)
-        c.setFillColor(colors.purple)
+        c.setFillColor(self.accent_color)
         c.drawString(175, 750, "What you wrote for others")
         y_position = 720
         
         for message in self.messagesByYou:
             if y_position < 150: 
                 c.showPage()
+                if self.dark_mode:
+                    c.setFillColor(self.bg_color)
+                    c.rect(0, 0, width, height, fill=1)
                 y_position = 750
             y_position = self.add_message_block(c, message, y_position)
             progressBar.update(1)
@@ -343,7 +395,7 @@ class YearBook:
             if self.progress_callback:
                 self.progress_callback(self.progress)
 
-        # Friend messages (only if include_friends is True)
+        # Friends' messages (only if include_friends is True)
         if self.include_friends:
             for friend_data in self.friendMessages:
                 if not friend_data['messages_by'] and not friend_data['messages_for'] : continue
@@ -353,14 +405,20 @@ class YearBook:
                 # Messages written by the friend
                 if friend_data['messages_by']:
                     c.showPage()
+                    if self.dark_mode:
+                        c.setFillColor(self.bg_color)
+                        c.rect(0, 0, width, height, fill=1)
                     c.setFont("Helvetica-Bold", 16)
-                    c.setFillColor(colors.purple)
+                    c.setFillColor(self.accent_color)
                     c.drawString(175, 750, f"Messages written by {friend_data['friend_name']}")
                     y_position = 720
 
                     for message in friend_data['messages_by']:
                         if y_position < 150:
                             c.showPage()
+                            if self.dark_mode:
+                                c.setFillColor(self.bg_color)
+                                c.rect(0, 0, width, height, fill=1)
                             y_position = 750
                         y_position = self.add_message_block(c, message, y_position)
                         progressBar.update(1)
@@ -371,14 +429,20 @@ class YearBook:
                 # Messages written for the friend
                 if friend_data['messages_for']:
                     c.showPage()
+                    if self.dark_mode:
+                        c.setFillColor(self.bg_color)
+                        c.rect(0, 0, width, height, fill=1)
                     c.setFont("Helvetica-Bold", 16)
-                    c.setFillColor(colors.purple)
+                    c.setFillColor(self.accent_color)
                     c.drawString(175, 750, f"Messages written for {friend_data['friend_name']}")
                     y_position = 720
 
                     for message in friend_data['messages_for']:
                         if y_position < 150:
                             c.showPage()
+                            if self.dark_mode:
+                                c.setFillColor(self.bg_color)
+                                c.rect(0, 0, width, height, fill=1)
                             y_position = 750
                         y_position = self.add_message_block(c, message, y_position)
                         progressBar.update(1)
@@ -391,12 +455,16 @@ class YearBook:
 if __name__ == "__main__":
     
     if len(sys.argv) < 3:
-        print("Error: Invalid number of arguments. Expected at least 2, got", len(sys.argv) - 1)
+        print("Usage: python generateYearBook.py <username> <password> [wfriends] [dark]")
+        print("Options:")
+        print("  wfriends  - Include friends' messages")
+        print("  dark      - Use dark mode color scheme")
         sys.exit(1)
 
     param1 = sys.argv[1]
     param2 = sys.argv[2]
-    include_friends = len(sys.argv) > 3 and sys.argv[3].lower() == 'true'
+    include_friends = 'wfriends' in sys.argv
+    dark_mode = 'dark' in sys.argv
     
-    yb = YearBook(param1, param2, include_friends)
+    yb = YearBook(param1, param2, include_friends, dark_mode)
     yb.generate_pdf("yearbook.pdf")
