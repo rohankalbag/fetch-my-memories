@@ -5,11 +5,11 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.utils import ImageReader
 from io import BytesIO
-import sys
 import requests
 from tqdm import tqdm
 import time
 from constants import BLACK_COVER_IMG, BLACK_GRP_IMAGE
+import argparse
 
 class YearBook:
 
@@ -31,7 +31,7 @@ class YearBook:
             self.bg_color = colors.HexColor('#2C2C2C')  # Slate gray
             self.text_color = colors.HexColor('#E4E4E4')  # Light gray
             self.accent_color = colors.HexColor('#B39CD0')
-        else :
+        else:
             self.text_color = colors.black  
             self.accent_color = colors.purple  # Keep purple as accent color
 
@@ -58,6 +58,9 @@ class YearBook:
         self.progress = 0
         pdfmetrics.registerFont(TTFont('Symbola', 'Symbola.ttf'))
 
+    def set_progress_callback(self, callback):
+        self.progress_callback = callback
+    
     def add_message_block(self, c, message, y_position):
         width, height = letter
 
@@ -454,17 +457,13 @@ class YearBook:
 
 if __name__ == "__main__":
     
-    if len(sys.argv) < 3:
-        print("Usage: python generateYearBook.py <username> <password> [wfriends] [dark]")
-        print("Options:")
-        print("  wfriends  - Include friends' messages")
-        print("  dark      - Use dark mode color scheme")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="generate your yearbook")
+    parser.add_argument("username", help="yearbook website username of the form <username>@iitb.ac.in")
+    parser.add_argument("password", help="yearbook website password")
+    parser.add_argument("-f", "--friends", action="store_true", help="include friends' yearbooks as well")
+    parser.add_argument("-d", "--dark", action="store_true", help="use dark mode color scheme")
 
-    param1 = sys.argv[1]
-    param2 = sys.argv[2]
-    include_friends = 'wfriends' in sys.argv
-    dark_mode = 'dark' in sys.argv
-    
-    yb = YearBook(param1, param2, include_friends, dark_mode)
+    args = parser.parse_args()
+
+    yb = YearBook(args.username, args.password, args.friends, args.dark)
     yb.generate_pdf("yearbook.pdf")
