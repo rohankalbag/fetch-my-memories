@@ -19,26 +19,13 @@ Note: The web scrape may not work on IITB InstiNet
 git clone https://github.com/rohankalbag/fetch-my-memories
 cd fetch-my-memories
 pip install -r requirements.txt
-python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD
+python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD [--dark/-d] [--friends/-f]
 ```
 
-To also get the messages written by and written for your friends (Note that this takes considerably more time, averages at 45 seconds per friend) 
+- `--friends` or `-f`: (optional) 
+specify this option to also get the messages written by and written for your friends (Note that this takes considerably more time, averages at 45 seconds per friend) 
 
-```bash
-git clone https://github.com/rohankalbag/fetch-my-memories
-cd fetch-my-memories
-pip install -r requirements.txt
-python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD wfriends
-```
-
-You can also opt for a dark-mode version of your yearbook, as follows  
-
-```bash
-git clone https://github.com/rohankalbag/fetch-my-memories
-cd fetch-my-memories
-pip install -r requirements.txt
-python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD dark
-```
+- `--dark` or `-d`: (optional) specify this option to opt for a dark-mode version of your yearbook 
 
 You can find your yearbook ready as `yearbook.pdf`
 
