@@ -8,14 +8,15 @@ progress_thread = None
 app = Flask(__name__)
 
 class ProgressThread(threading.Thread):
-    def __init__(self, email, password):
+    def __init__(self, email, password, **kwargs):
         self.progress = 0
         self.email = email
         self.password = password
+        self.kwargs = kwargs
         super().__init__()
 
     def run(self):
-        self.yb = YearBook(self.email, self.password)
+        self.yb = YearBook(self.email, self.password, **self.kwargs)
         self.maxProg = len(self.yb.messagesForYou) + len(self.yb.messagesByYou)
         def update_progress(current):
             self.progress = int((current / self.maxProg) * 100)
@@ -32,7 +33,14 @@ def process():
         global progress_thread
         email = request.form['email']
         password = request.form['password']
-        progress_thread = ProgressThread(email=email, password=password)
+        include_friends = 'friends' in request.form
+        dark_mode = 'dark_mode' in request.form
+        progress_thread = ProgressThread(
+            email=email,
+            password=password,
+            include_friends=include_friends,
+            dark_mode=dark_mode
+        )
         progress_thread.start()
         return render_template("progress.html")
     else:
