@@ -24,7 +24,6 @@ python3 generateYearBook.py YOUR_EMAIL_ID YOUR_PASSWORD [--dark/-d] [--friends/-
 
 - `--friends` or `-f`: (optional) 
 specify this option to also get the messages written by and written for your friends (Note that this takes considerably more time, averages at 45 seconds per friend) 
-
 - `--dark` or `-d`: (optional) specify this option to opt for a dark-mode version of your yearbook 
 
 You can find your yearbook ready as `yearbook.pdf`
