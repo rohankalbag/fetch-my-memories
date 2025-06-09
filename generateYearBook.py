@@ -301,7 +301,7 @@ class YearBook:
         c.rect(80, 360, 450, 70, fill=1, stroke=0)
         c.setFont("Helvetica-Bold", 25)
         # c.setFillColor(self.accent_color)
-        c.setFillColor(self.accent_color)
+        c.setFillColor(colors.purple)
         c.drawString(100, 396, "Yearbook - Your College Memories")
         c.setFont("Helvetica-Bold", 15)
         c.drawString(100, 376, "Late Nights, Deadlines, and Dreams - A Stroll through time")
